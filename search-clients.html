@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск клиентов</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Навигация -->
+        <div class="bg-white rounded-lg shadow-md p-4 mb-6 flex gap-4">
+            <a href="add-client.html" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                <i class="fas fa-plus-circle mr-2"></i>Добавить клиента
+            </a>
+            <a href="search-clients.html" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <i class="fas fa-search mr-2"></i>Поиск клиентов
+            </a>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h1 class="text-3xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+                <i class="fas fa-users text-blue-600"></i>
+                Список клиентов
+            </h1>
+            
+            <!-- Поиск -->
+            <div class="mb-6">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" 
+                           id="searchInput"
+                           placeholder="Поиск по имени или телефону..." 
+                           class="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-lg">
+                </div>
+                <p class="text-sm text-gray-500 mt-2" id="resultsCount"></p>
+            </div>
+
+            <!-- Индикатор загрузки -->
+            <div id="loading" class="text-center py-8 hidden">
+                <i class="fas fa-spinner fa-spin text-3xl text-blue-600"></i>
+                <p class="text-gray-600 mt-2">Загрузка клиентов...</p>
+            </div>
+
+            <!-- Кнопка обновления -->
+            <div class="mb-4 flex justify-end">
+                <button onclick="loadClients()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors">
+                    <i class="fas fa-sync-alt mr-2"></i>Обновить список
+                </button>
+            </div>
+
+            <!-- Сетка с клиентами -->
+            <div id="clientsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Карточки будут вставлены сюда -->
+            </div>
+        </div>
+
+        <!-- Модальное окно подтверждения удаления -->
+        <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+            <div class="bg-white rounded-xl p-6 max-w-md mx-4">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Подтверждение удаления</h3>
+                <p class="text-gray-600 mb-6">Вы уверены, что хотите удалить клиента <span id="deleteClientName" class="font-semibold"></span>?</p>
+                <div class="flex gap-3 justify-end">
+                    <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors">
+                        Отмена
+                    </button>
+                    <button onclick="confirmDelete()" id="confirmDeleteBtn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
+                        Удалить
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Уведомление -->
+        <div id="toast" class="fixed bottom-4 right-4 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg transform transition-transform duration-300 translate-y-20">
+            <!-- Текст уведомления -->
+        </div>
+    </div>
+
+    <script>
+        // ===== НАСТРОЙКИ SUPABASE =====
+        const supabaseUrl = 'https://agvskzcbrtsuesuaednj.supabase.co';
+        const supabaseAnonKey = 'sb_publishable_dsBU1xpzb7vciVPkFccVDg_qmAFr2Yy';
+        supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+        let allClients = [];
+        let toastTimeout;
+        let clientToDelete = null; // Для хранения ID клиента на удаление
+
+        // Форматирование номера телефона
+        function formatPhoneNumber(phone) {
+            const cleaned = phone.replace(/\D/g, '');
+            if (cleaned.length === 11 && (cleaned[0] === '7' || cleaned[0] === '8')) {
+                return `+7 (${cleaned.slice(1,4)}) ${cleaned.slice(4,7)}-${cleaned.slice(7,9)}-${cleaned.slice(9,11)}`;
+            } else if (cleaned.length === 10) {
+                return `+7 (${cleaned.slice(0,3)}) ${cleaned.slice(3,6)}-${cleaned.slice(6,8)}-${cleaned.slice(8,10)}`;
+            }
+            return phone;
+        }
+
+        // Подготовка номера для WhatsApp
+        function preparePhoneForWhatsApp(phone) {
+            const cleaned = phone.replace(/\D/g, '');
+            if (cleaned.length === 11 && cleaned[0] === '8') return '7' + cleaned.slice(1);
+            if (cleaned.length === 10) return '7' + cleaned;
+            if (cleaned.length === 11 && cleaned[0] === '7') return cleaned;
+            return cleaned;
+        }
+
+        // Генерация кода
+        function generateCode() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
+        }
+
+        // Показать уведомление
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.remove('translate-y-20');
+            toast.classList.add('translate-y-0');
+            
+            if (isError) {
+                toast.classList.add('bg-red-600');
+                toast.classList.remove('bg-gray-800');
+            } else {
+                toast.classList.add('bg-gray-800');
+                toast.classList.remove('bg-red-600');
+            }
+            
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('translate-y-20');
+                toast.classList.remove('translate-y-0');
+            }, 2000);
+        }
+
+        // Открыть модальное окно удаления
+        function openDeleteModal(clientId, clientName, event) {
+            event.stopPropagation();
+            clientToDelete = clientId;
+            document.getElementById('deleteClientName').textContent = clientName;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        // Закрыть модальное окно
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+            clientToDelete = null;
+        }
+
+        // Подтверждение удаления
+        async function confirmDelete() {
+            if (!clientToDelete) return;
+            
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            const originalText = confirmBtn.innerHTML;
+            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Удаление...';
+            confirmBtn.disabled = true;
+            
+            try {
+                const { error } = await supabase
+                    .from('clients')
+                    .delete()
+                    .eq('id', clientToDelete);
+                
+                if (error) throw error;
+                
+                showToast('✅ Клиент удален');
+                closeDeleteModal();
+                loadClients(); // Перезагружаем список
+                
+            } catch (error) {
+                console.error('Ошибка удаления:', error);
+                showToast('❌ Ошибка при удалении', true);
+            } finally {
+                confirmBtn.innerHTML = originalText;
+                confirmBtn.disabled = false;
+            }
+        }
+
+        // Отправка в WhatsApp
+        function sendWhatsAppCode(phone, event) {
+            event.stopPropagation();
+            const code = generateCode();
+            const cleanPhone = preparePhoneForWhatsApp(phone);
+            const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent('Ваш код подтверждения: ' + code)}`;
+            window.open(whatsappUrl, '_blank');
+            showToast(`Код ${code} отправлен на ${formatPhoneNumber(phone)}`);
+        }
+
+        // Проверка срока действия
+        function checkValidity(validUntil) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const validDate = new Date(validUntil);
+            validDate.setHours(0, 0, 0, 0);
+            return today <= validDate;
+        }
+
+                // Создание карточки клиента
+            function createClientCard(client) {
+            const isValid = checkValidity(client.valid_until);
+            const validClass = isValid ? 'text-green-600' : 'text-red-600';
+            const validIcon = isValid ? '✅' : '❌';
+            const formattedDate = new Date(client.valid_until).toLocaleDateString('ru-RU');
+            
+            return `
+                <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-5 relative border border-gray-200">
+                    <!-- Заголовок с именем по центру -->
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3 text-center border-b pb-2">${client.full_name}</h3>
+                    
+                    <!-- Контейнер для иконок в одну линию -->
+                    <div class="flex justify-center gap-3 mb-3">
+                        <!-- Кнопка WhatsApp -->
+                        <button onclick="sendWhatsAppCode('${client.phone_number}', event)" 
+                                class="text-green-500 hover:text-green-600 hover:scale-110 transition-transform w-10 h-10 flex items-center justify-center bg-green-50 rounded-full">
+                            <i class="fab fa-whatsapp text-xl"></i>
+                        </button>
+                        
+                        <!-- Кнопка удаления -->
+                        <button onclick="openDeleteModal(${client.id}, '${client.full_name.replace(/'/g, "\\'")}', event)" 
+                                class="text-gray-400 hover:text-red-600 hover:scale-110 transition-transform w-10 h-10 flex items-center justify-center bg-gray-50 rounded-full">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Данные клиента -->
+                    <div class="space-y-2">
+                        <p class="text-gray-600 text-sm flex items-center gap-2">
+                            <i class="fas fa-phone-alt text-gray-400 w-4"></i>
+                            ${formatPhoneNumber(client.phone_number)}
+                        </p>
+                        <p class="text-gray-600 text-sm flex items-center gap-2">
+                            <i class="fas fa-tag text-gray-400 w-4"></i>
+                            ${client.tariff}
+                        </p>
+                        <p class="flex items-center justify-between text-sm ${validClass} border-t pt-2 mt-2">
+                            <span><i class="fas fa-calendar-alt mr-1"></i>Действует до:</span>
+                            <span class="font-bold">${formattedDate} ${validIcon}</span>
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Отображение клиентов
+        function displayClients(clients) {
+            const grid = document.getElementById('clientsGrid');
+            const resultsCount = document.getElementById('resultsCount');
+            
+            resultsCount.textContent = `Найдено клиентов: ${clients.length}`;
+            
+            if (clients.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                        <i class="fas fa-users-slash text-5xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500 text-xl">Клиенты не найдены</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = clients.map(createClientCard).join('');
+        }
+
+        // Загрузка клиентов из Supabase
+        async function loadClients(searchQuery = '') {
+            const loading = document.getElementById('loading');
+            loading.classList.remove('hidden');
+            
+            try {
+                let query = supabase
+                    .from('clients')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (searchQuery) {
+                    query = query.or(`full_name.ilike.%${searchQuery}%,phone_number.ilike.%${searchQuery}%`);
+                }
+                
+                const { data, error } = await query;
+                
+                if (error) throw error;
+                
+                allClients = data || [];
+                displayClients(allClients);
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
+                showToast('Ошибка загрузки данных', true);
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        // Поиск с debounce
+        let searchTimeout;
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                loadClients(e.target.value);
+            }, 300);
+        });
+
+        // Загружаем клиентов при старте
+        document.addEventListener('DOMContentLoaded', () => loadClients());
+        
+        // Делаем функции доступными глобально
+        window.sendWhatsAppCode = sendWhatsAppCode;
+        window.loadClients = loadClients;
+        window.openDeleteModal = openDeleteModal;
+        window.closeDeleteModal = closeDeleteModal;
+        window.confirmDelete = confirmDelete;
+    </script>
+</body>
+</html>
