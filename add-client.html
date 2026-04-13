@@ -2,129 +2,461 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Добавление клиента</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>DELTA | ДОБАВЛЕНИЕ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #000000;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(255, 0, 0, 0.05) 0%, transparent 30%),
+                radial-gradient(circle at 80% 70%, rgba(255, 0, 0, 0.05) 0%, transparent 30%);
+            min-height: 100vh;
+            color: #fff;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Контейнер */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+        }
+
+        /* Шапка */
+        .delta-header {
+            margin-bottom: 25px;
+            border-bottom: 3px solid #FF0000;
+            padding-bottom: 15px;
+        }
+
+        @media (min-width: 768px) {
+            .delta-header {
+                margin-bottom: 40px;
+                padding-bottom: 20px;
+            }
+        }
+
+        .delta-header h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 900;
+            line-height: 0.9;
+            letter-spacing: -2px;
+            color: #FF0000;
+            text-transform: uppercase;
+            text-shadow: 3px 3px 0px rgba(255,0,0,0.2);
+        }
+
+        @media (min-width: 768px) {
+            .delta-header h1 {
+                font-size: 5rem;
+            }
+        }
+
+        .delta-header h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        @media (min-width: 768px) {
+            .delta-header h2 {
+                font-size: 1.8rem;
+                letter-spacing: 2px;
+            }
+        }
+
+        /* Навигация */
+        .delta-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+            background: #111111;
+            border: 1px solid #333333;
+            padding: 10px;
+        }
+
+        @media (min-width: 640px) {
+            .delta-nav {
+                flex-direction: row;
+            }
+        }
+
+        .delta-nav a {
+            padding: 15px;
+            text-align: center;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-decoration: none;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .delta-nav a.active {
+            background: #FF0000;
+            color: #000000;
+        }
+
+        .delta-nav a:not(.active) {
+            background: #1A1A1A;
+            color: #ffffff;
+            border: 1px solid #333333;
+        }
+
+        .delta-nav a:not(.active):active {
+            background: #222222;
+            border-color: #FF0000;
+        }
+
+        /* Карточка */
+        .delta-card {
+            background: #111111;
+            border: 1px solid #333333;
+            padding: 20px;
+            box-shadow: 0 20px 40px -15px rgba(0,0,0,0.8);
+        }
+
+        @media (min-width: 768px) {
+            .delta-card {
+                padding: 40px;
+            }
+        }
+
+        .delta-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            color: #fff;
+            border-left: 6px solid #FF0000;
+            padding-left: 15px;
+        }
+
+        @media (min-width: 768px) {
+            .delta-title {
+                font-size: 2.5rem;
+                margin-bottom: 30px;
+                border-left: 8px solid #FF0000;
+                padding-left: 20px;
+            }
+        }
+
+        .delta-title span {
+            color: #FF0000;
+        }
+
+        /* Форма */
+        .form-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .form-grid {
+                gap: 25px;
+            }
+        }
+
+        /* Поля ввода */
+        .delta-label {
+            display: block;
+            margin-bottom: 6px;
+            color: #FF0000;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+
+        @media (min-width: 768px) {
+            .delta-label {
+                font-size: 0.9rem;
+                margin-bottom: 8px;
+                letter-spacing: 1px;
+            }
+        }
+
+        .delta-input {
+            width: 100%;
+            padding: 14px;
+            background: #1A1A1A;
+            border: 1px solid #333333;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.2s;
+            -webkit-appearance: none;
+            border-radius: 0;
+        }
+
+        @media (min-width: 768px) {
+            .delta-input {
+                padding: 16px 20px;
+                font-size: 1.1rem;
+            }
+        }
+
+        .delta-input:focus {
+            outline: none;
+            border-color: #FF0000;
+            background: #222222;
+        }
+
+        .delta-input::placeholder {
+            color: #555555;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        /* Маска для телефона - сам ввод уже стилизован через delta-input */
+
+        /* Сетка для полей */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        @media (min-width: 640px) {
+            .grid-2 {
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+            }
+        }
+
+        /* Информационные блоки */
+        .delta-info {
+            background: #1A1A1A;
+            border: 1px solid #333333;
+            padding: 14px;
+            color: #fff;
+            font-size: 1rem;
+            word-break: break-word;
+        }
+
+        @media (min-width: 768px) {
+            .delta-info {
+                padding: 16px;
+                font-size: 1.1rem;
+            }
+        }
+
+        .delta-info.highlight {
+            background: #FF0000;
+            color: #000000;
+            font-weight: 800;
+            border-color: #FF0000;
+        }
+
+        /* Кнопка */
+        .delta-button {
+            width: 100%;
+            padding: 16px;
+            background: #FF0000;
+            color: #000000;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        @media (min-width: 768px) {
+            .delta-button {
+                padding: 18px;
+                font-size: 1.2rem;
+                letter-spacing: 2px;
+                margin-top: 20px;
+            }
+        }
+
+        .delta-button:active {
+            background: #CC0000;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(255,0,0,0.3);
+        }
+
+        .delta-button i {
+            font-size: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .delta-button i {
+                font-size: 1.2rem;
+            }
+        }
+
+            .delta-toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #FF0000;
+            color: #000000;
+            padding: 15px;
+            font-weight: 800;
+            text-transform: uppercase;
+            display: none; /* По умолчанию скрыт */
+            z-index: 1000;
+        }
+
+        .delta-toast.show {
+            display: block; /* Показываем */
+        }
+        @media (min-width: 768px) {
+            .delta-toast {
+                left: auto;
+                right: 20px;
+                width: auto;
+                min-width: 300px;
+            }
+        }
+
+        .delta-toast.show {
+            transform: translateY(0);
+        }
+
+        /* Утилиты */
+        .hidden {
+            display: none !important;
+        }
+    </style>
 </head>
-<body class="bg-gray-100">
-    <div class="container mx-auto px-4 py-8 max-w-2xl">
+<body>
+    <div class="container">
+        <!-- Шапка -->
+        <div class="delta-header">
+            <h1>DELTA</h1>
+            <h2>ТРЕНАЖЕРНЫЙ ЗАЛ</h2>
+        </div>
+        
         <!-- Навигация -->
-        <div class="bg-white rounded-lg shadow-md p-4 mb-6 flex gap-4">
-            <a href="add-client.html" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                <i class="fas fa-plus-circle mr-2"></i>Добавить клиента
-            </a>
-            <a href="search-clients.html" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                <i class="fas fa-search mr-2"></i>Поиск клиентов
-            </a>
+        <div class="delta-nav">
+            <a href="add-client.html" class="active"><i class="fas fa-plus-circle mr-2"></i> ДОБАВИТЬ</a>
+            <a href="search-clients.html"><i class="fas fa-search mr-2"></i> ПОИСК</a>
         </div>
 
-        <div class="bg-white rounded-xl shadow-lg p-8">
-            <h1 class="text-3xl font-bold text-gray-800 mb-8 flex items-center gap-3">
-                <i class="fas fa-user-plus text-green-600"></i>
-                Добавить нового клиента
-            </h1>
+        <!-- Карточка добавления -->
+        <div class="delta-card">
+            <div class="delta-title">
+                НОВЫЙ <span>КЛИЕНТ</span>
+            </div>
             
             <!-- Форма добавления -->
-            <form id="clientForm" class="space-y-6">
+            <form id="clientForm" class="form-grid">
                 <!-- ФИО -->
                 <div>
-                    <label class="block text-gray-700 font-medium mb-2">
-                        <i class="fas fa-user text-gray-400 mr-2"></i>ФИО клиента
-                    </label>
+                    <label class="delta-label"><i class="fas fa-user mr-2"></i>ФИО КЛИЕНТА</label>
                     <input type="text" 
                            id="fullName"
                            required
-                           placeholder="Иванов Иван Иванович"
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                           placeholder="ИВАНОВ ИВАН ИВАНОВИЧ"
+                           class="delta-input"
+                           autocomplete="off">
                 </div>
 
-                <!-- Телефон -->
+                <!-- Телефон с маской -->
                 <div>
-                    <label class="block text-gray-700 font-medium mb-2">
-                        <i class="fas fa-phone text-gray-400 mr-2"></i>Номер телефона
-                    </label>
+                    <label class="delta-label"><i class="fas fa-phone mr-2"></i>НОМЕР ТЕЛЕФОНА</label>
                     <input type="tel" 
                            id="phoneNumber"
                            required
-                           placeholder="+7 (999) 123-45-67"
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-                    <p class="text-sm text-gray-500 mt-1">В любом формате, главное чтобы был номер</p>
+                           placeholder="+7 (___) ___-__-__"
+                           class="delta-input"
+                           maxlength="18"
+                           autocomplete="off">
+                    <p class="text-gray-500 text-xs mt-1" style="color: #666666;">Формат: +7 (999) 123-45-67</p>
                 </div>
 
-                <!-- Тариф и срок в одной сетке -->
-                <div class="grid grid-cols-2 gap-4">
+                <!-- Тариф и срок -->
+                <div class="grid-2">
                     <!-- Тариф -->
                     <div>
-                        <label class="block text-gray-700 font-medium mb-2">
-                            <i class="fas fa-tag text-gray-400 mr-2"></i>Тариф
-                        </label>
-                        <select id="tariff" 
-                                required
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-white">
-                            <option value="">Выберите тариф</option>
-                            <option value="Стандарт на месяц">📅 Стандарт на месяц</option>
-                            <option value="Школьный на месяц">🎒 Школьный на месяц</option>
-                            <option value="Халявный месяц">🎁 Халявный месяц</option>
-                            <option value="3 месяца">📆 3 месяца</option>
-                            <option value="Полугодовой безлимит">⚡ Полугодовой безлимит</option>
-                            <option value="Годовой безлимит">🌟 Годовой безлимит</option>
-                            <option value="Разовое">🔑 Разовое</option>
-                            <option value="Персональное">👤 Персональное</option>
+                        <label class="delta-label"><i class="fas fa-tag mr-2"></i>ТАРИФ</label>
+                        <select id="tariff" required class="delta-input">
+                            <option value="">ВЫБЕРИТЕ ТАРИФ</option>
+                            <option value="Стандарт на месяц">📅 СТАНДАРТ НА МЕСЯЦ</option>
+                            <option value="Школьный на месяц">🎒 ШКОЛЬНЫЙ НА МЕСЯЦ</option>
+                            <option value="Халявный месяц">🎁 ХАЛЯВНЫЙ МЕСЯЦ</option>
+                            <option value="3 месяца">📆 3 МЕСЯЦА</option>
+                            <option value="Полугодовой безлимит">⚡ ПОЛУГОДОВОЙ БЕЗЛИМИТ</option>
+                            <option value="Годовой безлимит">🌟 ГОДОВОЙ БЕЗЛИМИТ</option>
+                            <option value="Разовое">🔑 РАЗОВОЕ</option>
+                            <option value="Персональное">👤 ПЕРСОНАЛЬНОЕ</option>
                         </select>
                     </div>
                     
-                    <!-- Срок действия (не редактируется, только для информации) -->
+                    <!-- Срок действия -->
                     <div>
-                        <label class="block text-gray-700 font-medium mb-2">
-                            <i class="fas fa-clock text-gray-400 mr-2"></i>Срок действия
-                        </label>
-                        <div class="px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-700" id="durationDisplay">
-                            Выберите тариф
+                        <label class="delta-label"><i class="fas fa-clock mr-2"></i>СРОК ДЕЙСТВИЯ</label>
+                        <div class="delta-info" id="durationDisplay">
+                            ВЫБЕРИТЕ ТАРИФ
                         </div>
                     </div>
                 </div>
 
-                <!-- Дата регистрации и расчет окончания -->
-                <div class="grid grid-cols-2 gap-4">
+                <!-- Даты -->
+                <div class="grid-2">
                     <div>
-                        <label class="block text-gray-700 font-medium mb-2">
-                            <i class="fas fa-calendar-plus text-gray-400 mr-2"></i>Дата регистрации
-                        </label>
+                        <label class="delta-label"><i class="fas fa-calendar-plus mr-2"></i>ДАТА РЕГИСТРАЦИИ</label>
                         <input type="date" 
                                id="startDate"
                                required
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                               class="delta-input">
                     </div>
                     
                     <div>
-                        <label class="block text-gray-700 font-medium mb-2">
-                            <i class="fas fa-calendar-check text-gray-400 mr-2"></i>Действует до
-                        </label>
-                        <div class="px-4 py-3 bg-green-50 border border-green-200 rounded-lg text-green-700 font-bold" id="endDateDisplay">
+                        <label class="delta-label"><i class="fas fa-calendar-check mr-2"></i>ДЕЙСТВУЕТ ДО</label>
+                        <div class="delta-info highlight" id="endDateDisplay">
                             —
                         </div>
                     </div>
                 </div>
 
-                <!-- Скрытое поле для отправки в БД -->
+                <!-- Скрытое поле -->
                 <input type="hidden" id="validUntil" name="validUntil">
 
-                <!-- Кнопка отправки -->
-                <button type="submit" 
-                        id="submitBtn"
-                        class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg transition-colors text-lg flex items-center justify-center gap-2">
-                    <i class="fas fa-save"></i>
-                    Сохранить клиента
+                <!-- Кнопка -->
+                <button type="submit" id="submitBtn" class="delta-button">
+                    <i class="fas fa-dumbbell"></i> СОХРАНИТЬ КЛИЕНТА
                 </button>
             </form>
-
-            <!-- Уведомление -->
-            <div id="toast" class="fixed bottom-4 right-4 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg transform transition-transform duration-300 translate-y-20">
-                <!-- Текст уведомления -->
-            </div>
         </div>
+
+        <!-- Уведомление -->
+        <div id="toast" class="delta-toast"></div>
     </div>
 
     <script>
@@ -147,24 +479,66 @@
 
         let toastTimeout;
 
+        // Функция для форматирования телефона в процессе ввода (маска)
+        function phoneMask(event) {
+            let input = event.target;
+            let value = input.value.replace(/\D/g, ''); // Убираем все нецифры
+            
+            // Если номер начинается с 7 или 8, нормализуем
+            if (value.length > 0) {
+                if (value[0] === '8') {
+                    value = '7' + value.substring(1);
+                } else if (value[0] !== '7') {
+                    value = '7' + value;
+                }
+            }
+            
+            // Форматируем
+            let formattedValue = '';
+            
+            if (value.length > 0) {
+                if (value.length <= 1) {
+                    formattedValue = '+7';
+                } else if (value.length <= 4) {
+                    formattedValue = '+7 (' + value.substring(1, 4);
+                } else if (value.length <= 7) {
+                    formattedValue = '+7 (' + value.substring(1, 4) + ') ' + value.substring(4, 7);
+                } else if (value.length <= 9) {
+                    formattedValue = '+7 (' + value.substring(1, 4) + ') ' + value.substring(4, 7) + '-' + value.substring(7, 9);
+                } else {
+                    formattedValue = '+7 (' + value.substring(1, 4) + ') ' + value.substring(4, 7) + '-' + value.substring(7, 9) + '-' + value.substring(9, 11);
+                }
+            } else {
+                formattedValue = '';
+            }
+            
+            input.value = formattedValue;
+        }
+
+        // Функция очистки телефона от форматирования для отправки в БД
+        function cleanPhoneNumber(phone) {
+            if (!phone) return '';
+            // Оставляем только цифры
+            let cleaned = phone.replace(/\D/g, '');
+            // Если начинается с 8, меняем на 7
+            if (cleaned.length === 11 && cleaned[0] === '8') {
+                cleaned = '7' + cleaned.substring(1);
+            }
+            // Если 10 цифр, добавляем 7
+            if (cleaned.length === 10) {
+                cleaned = '7' + cleaned;
+            }
+            return cleaned;
+        }
+
         function showToast(message, isError = false) {
             const toast = document.getElementById('toast');
             toast.textContent = message;
-            toast.classList.remove('translate-y-20');
-            toast.classList.add('translate-y-0');
-            
-            if (isError) {
-                toast.classList.add('bg-red-600');
-                toast.classList.remove('bg-gray-800');
-            } else {
-                toast.classList.add('bg-gray-800');
-                toast.classList.remove('bg-red-600');
-            }
+            toast.classList.add('show');
             
             clearTimeout(toastTimeout);
             toastTimeout = setTimeout(() => {
-                toast.classList.add('translate-y-20');
-                toast.classList.remove('translate-y-0');
+                toast.classList.remove('show');
             }, 3000);
         }
 
@@ -176,17 +550,14 @@
             if (tariff && tariffDurations[tariff]) {
                 const days = tariffDurations[tariff];
                 
-                // Форматируем вывод
-                if (days === 1) durationDisplay.textContent = '1 день';
-                else if (days < 5) durationDisplay.textContent = `${days} дня`;
-                else if (days < 21) durationDisplay.textContent = `${days} дней`;
-                else if (days === 30) durationDisplay.textContent = '1 месяц';
-                else if (days === 90) durationDisplay.textContent = '3 месяца';
-                else if (days === 180) durationDisplay.textContent = '6 месяцев';
-                else if (days === 365) durationDisplay.textContent = '1 год';
-                else durationDisplay.textContent = `${days} дней`;
+                if (days === 1) durationDisplay.textContent = '1 ДЕНЬ';
+                else if (days === 30) durationDisplay.textContent = '1 МЕСЯЦ';
+                else if (days === 90) durationDisplay.textContent = '3 МЕСЯЦА';
+                else if (days === 180) durationDisplay.textContent = '6 МЕСЯЦЕВ';
+                else if (days === 365) durationDisplay.textContent = '1 ГОД';
+                else durationDisplay.textContent = `${days} ДНЕЙ`;
             } else {
-                durationDisplay.textContent = 'Выберите тариф';
+                durationDisplay.textContent = 'ВЫБЕРИТЕ ТАРИФ';
             }
             
             calculateEndDate();
@@ -213,7 +584,7 @@
                 const rusDate = date.toLocaleDateString('ru-RU');
                 endDateDisplay.textContent = rusDate;
                 
-                // Сохраняем в скрытое поле для БД
+                // Сохраняем в скрытое поле
                 validUntil.value = endDate;
                 
                 return endDate;
@@ -230,22 +601,27 @@
             
             const submitBtn = document.getElementById('submitBtn');
             const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Сохранение...';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> СОХРАНЕНИЕ...';
             submitBtn.disabled = true;
 
             try {
-                // Получаем данные из формы
                 const fullName = document.getElementById('fullName').value.trim();
-                const phoneNumber = document.getElementById('phoneNumber').value.trim();
+                const phoneInput = document.getElementById('phoneNumber').value;
                 const tariff = document.getElementById('tariff').value;
                 const validUntil = document.getElementById('validUntil').value;
 
-                // Базовая валидация
+                // Очищаем телефон от маски
+                const phoneNumber = cleanPhoneNumber(phoneInput);
+
                 if (!fullName || !phoneNumber || !tariff || !validUntil) {
-                    throw new Error('Все поля обязательны для заполнения');
+                    throw new Error('Все поля обязательны');
                 }
 
-                // Сохраняем в Supabase
+                // Проверка длины номера (должно быть 11 цифр с 7)
+                if (phoneNumber.length !== 11 || phoneNumber[0] !== '7') {
+                    throw new Error('Введите корректный номер телефона');
+                }
+
                 const { data, error } = await supabase
                     .from('clients')
                     .insert([
@@ -260,11 +636,9 @@
 
                 if (error) throw error;
 
-                // Успех - показываем уведомление и очищаем форму
-                showToast('✅ Клиент успешно добавлен!');
+                showToast('✅ КЛИЕНТ ДОБАВЛЕН');
                 document.getElementById('clientForm').reset();
                 
-                // Сбрасываем даты
                 const today = new Date();
                 const todayStr = today.toISOString().split('T')[0];
                 document.getElementById('startDate').value = todayStr;
@@ -273,29 +647,34 @@
 
             } catch (error) {
                 console.error('Ошибка:', error);
-                showToast('❌ Ошибка: ' + error.message, true);
+                showToast('❌ ОШИБКА: ' + error.message, true);
             } finally {
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
             }
         });
 
-        // Слушатели изменений
-        document.getElementById('tariff').addEventListener('change', function() {
-            updateDurationDisplay();
+        // Слушатели
+        document.getElementById('tariff').addEventListener('change', updateDurationDisplay);
+        document.getElementById('startDate').addEventListener('change', calculateEndDate);
+        
+        // Маска для телефона
+        document.getElementById('phoneNumber').addEventListener('input', phoneMask);
+        
+        // При фокусе - если поле пустое, ставим +7
+        document.getElementById('phoneNumber').addEventListener('focus', function(e) {
+            if (!this.value) {
+                this.value = '+7';
+            }
         });
 
-        document.getElementById('startDate').addEventListener('change', function() {
-            calculateEndDate();
-        });
-
-        // Устанавливаем сегодняшнюю дату по умолчанию
+        // Устанавливаем сегодняшнюю дату
         const today = new Date();
         const todayStr = today.toISOString().split('T')[0];
         document.getElementById('startDate').value = todayStr;
-        document.getElementById('startDate').min = todayStr; // нельзя выбрать прошлые даты
+        document.getElementById('startDate').min = todayStr;
 
-        // Обновляем отображение при загрузке
+        // Обновляем отображение
         updateDurationDisplay();
     </script>
 </body>
