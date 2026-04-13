@@ -2,81 +2,814 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Поиск клиентов</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>DELTA | ПОИСК</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #000000;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(255, 0, 0, 0.05) 0%, transparent 30%),
+                radial-gradient(circle at 80% 70%, rgba(255, 0, 0, 0.05) 0%, transparent 30%);
+            min-height: 100vh;
+            color: #fff;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Контейнер с такими же отступами как в add-client */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+        }
+
+        /* Шапка */
+        .delta-header {
+            margin-bottom: 25px;
+            border-bottom: 3px solid #FF0000;
+            padding-bottom: 15px;
+        }
+
+        @media (min-width: 768px) {
+            .delta-header {
+                margin-bottom: 40px;
+                padding-bottom: 20px;
+            }
+        }
+
+        .delta-header h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 900;
+            line-height: 0.9;
+            letter-spacing: -2px;
+            color: #FF0000;
+            text-transform: uppercase;
+            text-shadow: 3px 3px 0px rgba(255,0,0,0.2);
+        }
+
+        @media (min-width: 768px) {
+            .delta-header h1 {
+                font-size: 5rem;
+            }
+        }
+
+        .delta-header h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        @media (min-width: 768px) {
+            .delta-header h2 {
+                font-size: 1.8rem;
+                letter-spacing: 2px;
+            }
+        }
+
+        /* Навигация */
+        .delta-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+            background: #111111;
+            border: 1px solid #333333;
+            padding: 10px;
+        }
+
+        @media (min-width: 640px) {
+            .delta-nav {
+                flex-direction: row;
+            }
+        }
+
+        .delta-nav a {
+            padding: 15px;
+            text-align: center;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-decoration: none;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .delta-nav a.active {
+            background: #FF0000;
+            color: #000000;
+        }
+
+        .delta-nav a:not(.active) {
+            background: #1A1A1A;
+            color: #ffffff;
+            border: 1px solid #333333;
+        }
+
+        .delta-nav a:not(.active):active {
+            background: #222222;
+            border-color: #FF0000;
+        }
+
+        /* Поиск */
+        .delta-search {
+            margin-bottom: 15px;
+        }
+
+        .delta-search input {
+            width: 100%;
+            padding: 16px;
+            background: #111111;
+            border: 2px solid #333333;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            -webkit-appearance: none;
+            border-radius: 0;
+        }
+
+        @media (min-width: 768px) {
+            .delta-search input {
+                padding: 20px 25px;
+                font-size: 1.2rem;
+            }
+        }
+
+        .delta-search input:focus {
+            outline: none;
+            border-color: #FF0000;
+            background: #1A1A1A;
+        }
+
+        .delta-search input::placeholder {
+            color: #444444;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        /* Блок фильтров */
+        .filters-section {
+            background: #111111;
+            border: 1px solid #333333;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .filters-section {
+                padding: 20px;
+            }
+        }
+
+        .filters-title {
+            color: #FF0000;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        @media (min-width: 768px) {
+            .filters-title {
+                font-size: 1.1rem;
+                margin-bottom: 15px;
+            }
+        }
+
+        .filters-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        @media (min-width: 640px) {
+            .filters-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .filters-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-label {
+            color: #888888;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-select, .filter-input {
+            width: 100%;
+            padding: 12px;
+            background: #1A1A1A;
+            border: 1px solid #333333;
+            color: white;
+            font-size: 0.95rem;
+            -webkit-appearance: none;
+            appearance: none;
+            border-radius: 0;
+        }
+
+        .filter-select {
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FF0000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
+        .filter-select:focus, .filter-input:focus {
+            outline: none;
+            border-color: #FF0000;
+        }
+
+        .filter-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        @media (min-width: 480px) {
+            .filter-actions {
+                flex-direction: row;
+                justify-content: flex-end;
+            }
+        }
+
+        .filter-btn {
+            padding: 12px 20px;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            -webkit-tap-highlight-color: transparent;
+            flex: 1;
+        }
+
+        @media (min-width: 480px) {
+            .filter-btn {
+                flex: 0 1 auto;
+            }
+        }
+
+        .filter-btn.apply {
+            background: #FF0000;
+            color: #000000;
+        }
+
+        .filter-btn.apply:active {
+            background: #CC0000;
+        }
+
+        .filter-btn.reset {
+            background: transparent;
+            border: 1px solid #444444;
+            color: #888888;
+        }
+
+        .filter-btn.reset:active {
+            border-color: #FF0000;
+            color: #FF0000;
+        }
+
+        .search-stats {
+            color: #FF0000;
+            font-weight: 700;
+            margin-top: 8px;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+
+        /* Кнопка обновления */
+        .delta-refresh {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+        }
+
+        .refresh-btn {
+            padding: 10px 20px;
+            background: transparent;
+            border: 2px solid #FF0000;
+            color: #FF0000;
+            font-weight: 800;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+            width: 100%;
+        }
+
+        @media (min-width: 480px) {
+            .refresh-btn {
+                width: auto;
+            }
+        }
+
+        .refresh-btn:active {
+            background: #FF0000;
+            color: #000000;
+        }
+
+        /* Сетка карточек */
+        .clients-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        @media (min-width: 640px) {
+            .clients-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .clients-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 20px;
+            }
+        }
+
+        @media (min-width: 1280px) {
+            .clients-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        /* Карточка клиента */
+        .client-card {
+            background: #111111;
+            border: 1px solid #333333;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .client-card:active {
+            border-color: #FF0000;
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            background: #1A1A1A;
+            padding: 15px;
+            border-bottom: 2px solid #FF0000;
+        }
+
+        @media (min-width: 768px) {
+            .card-header {
+                padding: 20px;
+            }
+        }
+
+        .card-header h3 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #fff;
+            text-transform: uppercase;
+            text-align: center;
+            word-break: break-word;
+        }
+
+        @media (min-width: 768px) {
+            .card-header h3 {
+                font-size: 1.3rem;
+            }
+        }
+
+        .card-body {
+            padding: 15px;
+        }
+
+        @media (min-width: 768px) {
+            .card-body {
+                padding: 20px;
+            }
+        }
+
+        .card-info {
+            margin-bottom: 12px;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid #222222;
+            font-size: 0.9rem;
+            flex-wrap: wrap;
+        }
+
+        .info-row i {
+            width: 16px;
+            color: #FF0000;
+            font-size: 0.9rem;
+        }
+
+        .info-label {
+            color: #888888;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .info-value {
+            color: #fff;
+            font-weight: 600;
+            margin-left: auto;
+            word-break: break-word;
+            text-align: right;
+        }
+
+        .validity-badge {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #1A1A1A;
+            padding: 10px;
+            margin-top: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .validity-badge.valid {
+            border-left: 4px solid #00FF00;
+        }
+
+        .validity-badge.expired {
+            border-left: 4px solid #FF0000;
+        }
+
+        .valid-icon {
+            font-size: 1rem;
+        }
+
+        /* Кнопки действий */
+        .card-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        @media (min-width: 400px) {
+            .card-actions {
+                flex-direction: row;
+            }
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .whatsapp-btn {
+            background: transparent;
+            border: 2px solid #FF0000;
+            color: #FF0000;
+        }
+
+        .whatsapp-btn:active {
+            background: #FF0000;
+            color: #000000;
+        }
+
+        .delete-btn {
+            background: transparent;
+            border: 2px solid #444444;
+            color: #888888;
+        }
+
+        .delete-btn:active {
+            border-color: #FF0000;
+            color: #FF0000;
+        }
+
+        /* Загрузка */
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .loading i {
+            color: #FF0000;
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .loading p {
+            color: #fff;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        /* Пустой список */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            background: #111111;
+            border: 2px dashed #333333;
+        }
+
+        .empty-state i {
+            color: #FF0000;
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .empty-state p {
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .empty-state span {
+            color: #666666;
+            font-size: 0.9rem;
+        }
+
+        /* Модальное окно */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 15px;
+        }
+
+        .delta-modal {
+            background: #111111;
+            border: 2px solid #FF0000;
+            padding: 25px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .delta-modal h3 {
+            color: #FF0000;
+            font-size: 1.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+        }
+
+        .delta-modal p {
+            color: #fff;
+            font-size: 1rem;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .modal-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        @media (min-width: 400px) {
+            .modal-actions {
+                flex-direction: row;
+            }
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 15px;
+            font-weight: 800;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-size: 0.95rem;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .modal-btn.cancel {
+            background: #222222;
+            color: #fff;
+        }
+
+        .modal-btn.cancel:active {
+            background: #333333;
+        }
+
+        .modal-btn.delete {
+            background: #FF0000;
+            color: #000000;
+        }
+
+        .modal-btn.delete:active {
+            background: #CC0000;
+        }
+
+        /* Уведомление */
+        .delta-toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #FF0000;
+            color: #000000;
+            padding: 15px;
+            font-weight: 800;
+            text-transform: uppercase;
+            display: none;
+            z-index: 1000;
+        }
+
+        .delta-toast.show {
+            display: block;
+        }
+
+        @media (min-width: 768px) {
+            .delta-toast {
+                left: auto;
+                right: 20px;
+                width: auto;
+                min-width: 300px;
+            }
+        }
+
+        /* Утилиты */
+        .hidden {
+            display: none !important;
+        }
+    </style>
 </head>
-<body class="bg-gray-100">
-    <div class="container mx-auto px-4 py-8 max-w-6xl">
+<body>
+    <div class="container">
+        <!-- Шапка -->
+        <div class="delta-header">
+            <h1>DELTA</h1>
+            <h2>ТРЕНАЖЕРНЫЙ ЗАЛ</h2>
+        </div>
+        
         <!-- Навигация -->
-        <div class="bg-white rounded-lg shadow-md p-4 mb-6 flex gap-4">
-            <a href="add-client.html" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                <i class="fas fa-plus-circle mr-2"></i>Добавить клиента
-            </a>
-            <a href="search-clients.html" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                <i class="fas fa-search mr-2"></i>Поиск клиентов
-            </a>
+        <div class="delta-nav">
+            <a href="add-client.html"><i class="fas fa-plus-circle mr-2"></i> ДОБАВИТЬ</a>
+            <a href="search-clients.html" class="active"><i class="fas fa-search mr-2"></i> ПОИСК</a>
         </div>
 
-        <div class="bg-white rounded-xl shadow-lg p-6">
-            <h1 class="text-3xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-                <i class="fas fa-users text-blue-600"></i>
-                Список клиентов
-            </h1>
+        <!-- Поиск -->
+        <div class="delta-search">
+            <input type="text" 
+                   id="searchInput"
+                   placeholder="🔍 ПОИСК ПО ИМЕНИ ИЛИ ТЕЛЕФОНУ...">
+        </div>
+
+        <!-- Фильтры -->
+        <div class="filters-section">
+            <div class="filters-title">
+                <i class="fas fa-filter"></i> ФИЛЬТРЫ
+            </div>
             
-            <!-- Поиск -->
-            <div class="mb-6">
-                <div class="relative">
-                    <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" 
-                           id="searchInput"
-                           placeholder="Поиск по имени или телефону..." 
-                           class="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-lg">
+            <div class="filters-grid">
+                <!-- Фильтр по тарифу -->
+                <div class="filter-item">
+                    <span class="filter-label">ТАРИФ</span>
+                    <select id="filterTariff" class="filter-select">
+                        <option value="all">ВСЕ ТАРИФЫ</option>
+                        <option value="Стандарт на месяц">СТАНДАРТ НА МЕСЯЦ</option>
+                        <option value="Школьный на месяц">ШКОЛЬНЫЙ НА МЕСЯЦ</option>
+                        <option value="Халявный месяц">ХАЛЯВНЫЙ МЕСЯЦ</option>
+                        <option value="3 месяца">3 МЕСЯЦА</option>
+                        <option value="Полугодовой безлимит">ПОЛУГОДОВОЙ БЕЗЛИМИТ</option>
+                        <option value="Годовой безлимит">ГОДОВОЙ БЕЗЛИМИТ</option>
+                        <option value="Разовое">РАЗОВОЕ</option>
+                        <option value="Персональное">ПЕРСОНАЛЬНОЕ</option>
+                    </select>
                 </div>
-                <p class="text-sm text-gray-500 mt-2" id="resultsCount"></p>
+
+                <!-- Фильтр по статусу -->
+                <div class="filter-item">
+                    <span class="filter-label">СТАТУС</span>
+                    <select id="filterStatus" class="filter-select">
+                        <option value="all">ВСЕ</option>
+                        <option value="active">АКТИВНЫЕ</option>
+                        <option value="expired">ПРОСРОЧЕННЫЕ</option>
+                    </select>
+                </div>
+
+                <!-- Фильтр по дате регистрации -->
+                <div class="filter-item">
+                    <span class="filter-label">ДАТА РЕГИСТРАЦИИ</span>
+                    <input type="date" id="filterRegistrationDate" class="filter-input">
+                </div>
+
+                <!-- Фильтр по дате регистрации (до) -->
+                <div class="filter-item">
+                    <span class="filter-label">ДО ДАТЫ</span>
+                    <input type="date" id="filterRegistrationDateTo" class="filter-input">
+                </div>
             </div>
 
-            <!-- Индикатор загрузки -->
-            <div id="loading" class="text-center py-8 hidden">
-                <i class="fas fa-spinner fa-spin text-3xl text-blue-600"></i>
-                <p class="text-gray-600 mt-2">Загрузка клиентов...</p>
-            </div>
-
-            <!-- Кнопка обновления -->
-            <div class="mb-4 flex justify-end">
-                <button onclick="loadClients()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors">
-                    <i class="fas fa-sync-alt mr-2"></i>Обновить список
+            <!-- Кнопки фильтров -->
+            <div class="filter-actions">
+                <button onclick="resetFilters()" class="filter-btn reset">
+                    <i class="fas fa-times mr-2"></i> СБРОСИТЬ
+                </button>
+                <button onclick="applyFilters()" class="filter-btn apply">
+                    <i class="fas fa-check mr-2"></i> ПРИМЕНИТЬ
                 </button>
             </div>
-
-            <!-- Сетка с клиентами -->
-            <div id="clientsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- Карточки будут вставлены сюда -->
-            </div>
         </div>
 
-        <!-- Модальное окно подтверждения удаления -->
-        <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-            <div class="bg-white rounded-xl p-6 max-w-md mx-4">
-                <h3 class="text-xl font-bold text-gray-800 mb-4">Подтверждение удаления</h3>
-                <p class="text-gray-600 mb-6">Вы уверены, что хотите удалить клиента <span id="deleteClientName" class="font-semibold"></span>?</p>
-                <div class="flex gap-3 justify-end">
-                    <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors">
-                        Отмена
-                    </button>
-                    <button onclick="confirmDelete()" id="confirmDeleteBtn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
-                        Удалить
-                    </button>
+        <!-- Статистика и обновление -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+            <div class="search-stats" id="resultsCount"></div>
+            <button onclick="loadClients()" class="refresh-btn">
+                <i class="fas fa-sync-alt mr-2"></i> ОБНОВИТЬ
+            </button>
+        </div>
+
+        <!-- Индикатор загрузки -->
+        <div id="loading" class="loading hidden">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>ЗАГРУЗКА КЛИЕНТОВ...</p>
+        </div>
+
+        <!-- Сетка с клиентами -->
+        <div id="clientsGrid" class="clients-grid">
+            <!-- Карточки будут вставлены сюда -->
+        </div>
+
+        <!-- Модальное окно удаления -->
+        <div id="deleteModal" class="modal-overlay hidden">
+            <div class="delta-modal">
+                <h3>УДАЛЕНИЕ</h3>
+                <p>Вы уверены, что хотите удалить <span id="deleteClientName" class="font-bold text-white"></span>?</p>
+                <div class="modal-actions">
+                    <button onclick="closeDeleteModal()" class="modal-btn cancel">ОТМЕНА</button>
+                    <button onclick="confirmDelete()" id="confirmDeleteBtn" class="modal-btn delete">УДАЛИТЬ</button>
                 </div>
             </div>
         </div>
 
         <!-- Уведомление -->
-        <div id="toast" class="fixed bottom-4 right-4 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg transform transition-transform duration-300 translate-y-20">
-            <!-- Текст уведомления -->
-        </div>
+        <div id="toast" class="delta-toast"></div>
     </div>
 
     <script>
@@ -86,10 +819,11 @@
         supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
 
         let allClients = [];
+        let filteredClients = [];
         let toastTimeout;
-        let clientToDelete = null; // Для хранения ID клиента на удаление
+        let clientToDelete = null;
 
-        // Форматирование номера телефона
+        // Форматирование номера
         function formatPhoneNumber(phone) {
             const cleaned = phone.replace(/\D/g, '');
             if (cleaned.length === 11 && (cleaned[0] === '7' || cleaned[0] === '8')) {
@@ -100,7 +834,7 @@
             return phone;
         }
 
-        // Подготовка номера для WhatsApp
+        // Подготовка для WhatsApp
         function preparePhoneForWhatsApp(phone) {
             const cleaned = phone.replace(/\D/g, '');
             if (cleaned.length === 11 && cleaned[0] === '8') return '7' + cleaned.slice(1);
@@ -114,29 +848,19 @@
             return Math.floor(100000 + Math.random() * 900000).toString();
         }
 
-        // Показать уведомление
+        // Уведомление
         function showToast(message, isError = false) {
             const toast = document.getElementById('toast');
             toast.textContent = message;
-            toast.classList.remove('translate-y-20');
-            toast.classList.add('translate-y-0');
-            
-            if (isError) {
-                toast.classList.add('bg-red-600');
-                toast.classList.remove('bg-gray-800');
-            } else {
-                toast.classList.add('bg-gray-800');
-                toast.classList.remove('bg-red-600');
-            }
+            toast.classList.add('show');
             
             clearTimeout(toastTimeout);
             toastTimeout = setTimeout(() => {
-                toast.classList.add('translate-y-20');
-                toast.classList.remove('translate-y-0');
+                toast.classList.remove('show');
             }, 2000);
         }
 
-        // Открыть модальное окно удаления
+        // Открыть модалку удаления
         function openDeleteModal(clientId, clientName, event) {
             event.stopPropagation();
             clientToDelete = clientId;
@@ -144,19 +868,19 @@
             document.getElementById('deleteModal').classList.remove('hidden');
         }
 
-        // Закрыть модальное окно
+        // Закрыть модалку
         function closeDeleteModal() {
             document.getElementById('deleteModal').classList.add('hidden');
             clientToDelete = null;
         }
 
-        // Подтверждение удаления
+        // Подтвердить удаление
         async function confirmDelete() {
             if (!clientToDelete) return;
             
             const confirmBtn = document.getElementById('confirmDeleteBtn');
             const originalText = confirmBtn.innerHTML;
-            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Удаление...';
+            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             confirmBtn.disabled = true;
             
             try {
@@ -167,13 +891,13 @@
                 
                 if (error) throw error;
                 
-                showToast('✅ Клиент удален');
+                showToast('✅ КЛИЕНТ УДАЛЕН');
                 closeDeleteModal();
-                loadClients(); // Перезагружаем список
+                loadClients();
                 
             } catch (error) {
-                console.error('Ошибка удаления:', error);
-                showToast('❌ Ошибка при удалении', true);
+                console.error('Ошибка:', error);
+                showToast('❌ ОШИБКА УДАЛЕНИЯ', true);
             } finally {
                 confirmBtn.innerHTML = originalText;
                 confirmBtn.disabled = false;
@@ -185,12 +909,12 @@
             event.stopPropagation();
             const code = generateCode();
             const cleanPhone = preparePhoneForWhatsApp(phone);
-            const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent('Ваш код подтверждения: ' + code)}`;
+            const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent('ВАШ КОД ДОСТУПА: ' + code)}`;
             window.open(whatsappUrl, '_blank');
-            showToast(`Код ${code} отправлен на ${formatPhoneNumber(phone)}`);
+            showToast(`🔴 КОД ${code} ОТПРАВЛЕН`);
         }
 
-        // Проверка срока действия
+        // Проверка срока
         function checkValidity(validUntil) {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
@@ -199,47 +923,104 @@
             return today <= validDate;
         }
 
-                // Создание карточки клиента
-            function createClientCard(client) {
+        // Применить фильтры
+        function applyFilters() {
+            const tariff = document.getElementById('filterTariff').value;
+            const status = document.getElementById('filterStatus').value;
+            const regDate = document.getElementById('filterRegistrationDate').value;
+            const regDateTo = document.getElementById('filterRegistrationDateTo').value;
+
+            filteredClients = allClients.filter(client => {
+                // Фильтр по тарифу
+                if (tariff !== 'all' && client.tariff !== tariff) return false;
+
+                // Фильтр по статусу
+                const isValid = checkValidity(client.valid_until);
+                if (status === 'active' && !isValid) return false;
+                if (status === 'expired' && isValid) return false;
+
+                // Фильтр по дате регистрации (created_at)
+                if (regDate) {
+                    const clientDate = new Date(client.created_at).toISOString().split('T')[0];
+                    if (clientDate !== regDate) return false;
+                }
+
+                // Фильтр по дате регистрации "до"
+                if (regDateTo) {
+                    const clientDate = new Date(client.created_at);
+                    const filterDate = new Date(regDateTo);
+                    filterDate.setHours(23, 59, 59, 999); // До конца выбранного дня
+                    if (clientDate > filterDate) return false;
+                }
+
+                return true;
+            });
+
+            displayClients(filteredClients);
+            showToast(`🔴 НАЙДЕНО: ${filteredClients.length}`);
+        }
+
+        // Сбросить фильтры
+        function resetFilters() {
+            document.getElementById('filterTariff').value = 'all';
+            document.getElementById('filterStatus').value = 'all';
+            document.getElementById('filterRegistrationDate').value = '';
+            document.getElementById('filterRegistrationDateTo').value = '';
+            filteredClients = [...allClients];
+            displayClients(filteredClients);
+            showToast('🔴 ФИЛЬТРЫ СБРОШЕНЫ');
+        }
+
+        // Создание карточки
+        function createClientCard(client) {
             const isValid = checkValidity(client.valid_until);
-            const validClass = isValid ? 'text-green-600' : 'text-red-600';
+            const validClass = isValid ? 'valid' : 'expired';
+            const validText = isValid ? 'АКТИВЕН' : 'ПРОСРОЧЕН';
             const validIcon = isValid ? '✅' : '❌';
             const formattedDate = new Date(client.valid_until).toLocaleDateString('ru-RU');
+            const regDate = new Date(client.created_at).toLocaleDateString('ru-RU');
             
             return `
-                <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-5 relative border border-gray-200">
-                    <!-- Заголовок с именем по центру -->
-                    <h3 class="text-xl font-semibold text-gray-800 mb-3 text-center border-b pb-2">${client.full_name}</h3>
-                    
-                    <!-- Контейнер для иконок в одну линию -->
-                    <div class="flex justify-center gap-3 mb-3">
-                        <!-- Кнопка WhatsApp -->
-                        <button onclick="sendWhatsAppCode('${client.phone_number}', event)" 
-                                class="text-green-500 hover:text-green-600 hover:scale-110 transition-transform w-10 h-10 flex items-center justify-center bg-green-50 rounded-full">
-                            <i class="fab fa-whatsapp text-xl"></i>
-                        </button>
-                        
-                        <!-- Кнопка удаления -->
-                        <button onclick="openDeleteModal(${client.id}, '${client.full_name.replace(/'/g, "\\'")}', event)" 
-                                class="text-gray-400 hover:text-red-600 hover:scale-110 transition-transform w-10 h-10 flex items-center justify-center bg-gray-50 rounded-full">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
+                <div class="client-card">
+                    <div class="card-header">
+                        <h3>${client.full_name}</h3>
                     </div>
                     
-                    <!-- Данные клиента -->
-                    <div class="space-y-2">
-                        <p class="text-gray-600 text-sm flex items-center gap-2">
-                            <i class="fas fa-phone-alt text-gray-400 w-4"></i>
-                            ${formatPhoneNumber(client.phone_number)}
-                        </p>
-                        <p class="text-gray-600 text-sm flex items-center gap-2">
-                            <i class="fas fa-tag text-gray-400 w-4"></i>
-                            ${client.tariff}
-                        </p>
-                        <p class="flex items-center justify-between text-sm ${validClass} border-t pt-2 mt-2">
-                            <span><i class="fas fa-calendar-alt mr-1"></i>Действует до:</span>
-                            <span class="font-bold">${formattedDate} ${validIcon}</span>
-                        </p>
+                    <div class="card-body">
+                        <div class="card-info">
+                            <div class="info-row">
+                                <i class="fas fa-phone"></i>
+                                <span class="info-label">ТЕЛЕФОН</span>
+                                <span class="info-value">${formatPhoneNumber(client.phone_number)}</span>
+                            </div>
+                            <div class="info-row">
+                                <i class="fas fa-tag"></i>
+                                <span class="info-label">ТАРИФ</span>
+                                <span class="info-value">${client.tariff}</span>
+                            </div>
+                            <div class="info-row">
+                                <i class="fas fa-calendar-plus"></i>
+                                <span class="info-label">ЗАРЕГИСТРИРОВАН</span>
+                                <span class="info-value">${regDate}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="validity-badge ${validClass}">
+                            <span><i class="fas fa-calendar-alt mr-2"></i>ДО ${formattedDate}</span>
+                            <span class="valid-icon">${validIcon} ${validText}</span>
+                        </div>
+                        
+                        <div class="card-actions">
+                            <button onclick="sendWhatsAppCode('${client.phone_number}', event)" 
+                                    class="action-btn whatsapp-btn">
+                                <i class="fab fa-whatsapp"></i> WHATSAPP
+                            </button>
+                            
+                            <button onclick="openDeleteModal(${client.id}, '${client.full_name.replace(/'/g, "\\'")}', event)" 
+                                    class="action-btn delete-btn">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -250,13 +1031,14 @@
             const grid = document.getElementById('clientsGrid');
             const resultsCount = document.getElementById('resultsCount');
             
-            resultsCount.textContent = `Найдено клиентов: ${clients.length}`;
+            resultsCount.textContent = `НАЙДЕНО: ${clients.length} КЛИЕНТОВ`;
             
             if (clients.length === 0) {
                 grid.innerHTML = `
-                    <div class="col-span-full text-center py-12">
-                        <i class="fas fa-users-slash text-5xl text-gray-300 mb-4"></i>
-                        <p class="text-gray-500 text-xl">Клиенты не найдены</p>
+                    <div class="empty-state">
+                        <i class="fas fa-dumbbell"></i>
+                        <p>КЛИЕНТЫ НЕ НАЙДЕНЫ</p>
+                        <span>ПОПРОБУЙТЕ ИЗМЕНИТЬ ФИЛЬТРЫ</span>
                     </div>
                 `;
                 return;
@@ -265,7 +1047,7 @@
             grid.innerHTML = clients.map(createClientCard).join('');
         }
 
-        // Загрузка клиентов из Supabase
+        // Загрузка клиентов
         async function loadClients(searchQuery = '') {
             const loading = document.getElementById('loading');
             loading.classList.remove('hidden');
@@ -285,10 +1067,11 @@
                 if (error) throw error;
                 
                 allClients = data || [];
-                displayClients(allClients);
+                filteredClients = [...allClients];
+                displayClients(filteredClients);
             } catch (error) {
-                console.error('Ошибка загрузки:', error);
-                showToast('Ошибка загрузки данных', true);
+                console.error('Ошибка:', error);
+                showToast('❌ ОШИБКА ЗАГРУЗКИ', true);
             } finally {
                 loading.classList.add('hidden');
             }
@@ -303,15 +1086,17 @@
             }, 300);
         });
 
-        // Загружаем клиентов при старте
+        // Загружаем при старте
         document.addEventListener('DOMContentLoaded', () => loadClients());
         
-        // Делаем функции доступными глобально
+        // Глобальные функции
         window.sendWhatsAppCode = sendWhatsAppCode;
         window.loadClients = loadClients;
         window.openDeleteModal = openDeleteModal;
         window.closeDeleteModal = closeDeleteModal;
         window.confirmDelete = confirmDelete;
+        window.applyFilters = applyFilters;
+        window.resetFilters = resetFilters;
     </script>
 </body>
 </html>
